@@ -1,0 +1,25 @@
+node_modules/
+.next/
+dist/
+*.tsbuildinfo
+
+# 秘密情報
+.env
+.env.local
+.env*.local
+.secrets/
+
+# Chrome プロファイル（ログインCookieが入る。絶対にコミットしない）
+.chrome-profile/
+
+# 実行時の生成物
+logs/
+screenshots/
+tmp/
+.DS_Store
+
+# LLM判定の受け渡しファイル（実行のたびに書き換わる作業ファイル）
+llm/*.json
+
+# Supabase CLI の作業ファイル（pooler-url に接続情報が入る）
+supabase/.temp/

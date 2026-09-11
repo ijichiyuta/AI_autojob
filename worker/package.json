@@ -1,0 +1,29 @@
+{
+  "name": "ai-autojob-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "crawl": "tsx src/cli/crawl.ts",
+    "score": "tsx src/cli/score.ts",
+    "report": "tsx src/cli/report.ts",
+    "rescore": "tsx src/cli/rescore.ts",
+    "inspect": "tsx src/cli/inspect.ts",
+    "login": "tsx src/cli/login.ts",
+    "typecheck": "tsc --noEmit",
+    "llm:export": "tsx src/cli/llm-export.ts",
+    "llm:import": "tsx src/cli/llm-import.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.102.1",
+    "dotenv": "^17.2.3",
+    "node-cron": "^4.2.1",
+    "playwright": "^1.56.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.20.7",
+    "typescript": "^5.9.3"
+  }
+}

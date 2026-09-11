@@ -1,0 +1,76 @@
+{
+  "_note": "クラウドワークスはVue+CSSモジュールでクラス名にハッシュが入る（_jobDescription_b2jur_18 など）。ハッシュはデプロイのたびに変わるため、(1)ラベル文字列 (2)[class*=\"_意味部分_\"] の部分一致 の順で堅い方から使う。取得失敗が続いたら selector_broken アラートを出して停止する。",
+
+  "baseUrl": "https://crowdworks.jp",
+  "searchPath": "/public/jobs/group/{group}",
+  "pageParam": "page",
+  "jobUrlPattern": "^/public/jobs/(\\d+)$",
+
+  "list": {
+    "card": "li:has(a[href^='/public/jobs/'])",
+    "titleLink": "h3[class*='_itemTitle_'] a[href^='/public/jobs/']",
+    "category": "a[href^='/public/jobs/category/']",
+    "description": "p[class*='_jobDescription_']",
+    "paymentLabel": "span[class*='_paymentLabel']",
+    "amountValue": "span[class*='_amountValue']",
+    "applicantCount": "b[class*='_applicationNumber_']",
+    "contractStatus": "span[class*='_contractStatusCell_']",
+    "absoluteDate": "span[class*='_absoluteDate_']",
+    "clientLink": "a[href^='/public/employers/']",
+    "postedAt": "time[datetime]"
+  },
+
+  "detail": {
+    "_strategy": "詳細ページには CSSモジュールのハッシュが付かない旧来クラス（cw-section / job_offer_detail_table / client_information）が残っている。こちらの方が安定するため優先して使う。値の取り出しは th/td・dt/dd のラベル文字列で行う。",
+    "descriptionSection": "section.cw-section.detail_information",
+    "summarySection": "section.cw-section.job_offer_summary",
+    "applicationSection": "section.cw-section.application_status",
+    "summaryTable": "table.job_offer_detail_table",
+    "clientSection": ".client_information",
+    "clientName": ".client_name",
+    "clientRating": ".client_rating",
+    "clientPerformance": ".client_performance",
+    "ruleCheck": ".employer_rule_check_succeeded",
+    "identityVerifiedFallback": "[class*='_identityVerified']",
+    "verifiedText": "本人確認済み",
+    "labels": {
+      "budget": ["固定報酬制", "時間単価制", "コンペ", "タスク"],
+      "deliveryDate": "納品希望日",
+      "postedAt": "掲載日",
+      "deadline": "応募期限",
+      "applicantCount": "応募した人",
+      "contractedCount": "契約した人",
+      "recruitCount": "募集人数",
+      "favoriteCount": "気になる！リスト",
+      "clientRating": "総合評価",
+      "clientOrderCount": "募集実績",
+      "completionRate": "プロジェクト完了率"
+    }
+  },
+
+  "groups": {
+    "development":     "システム開発",
+    "ai_machine_learning": "AI（人工知能）・機械学習",
+    "ai_bpo":          "AI-BPO（AI活用の業務改善）",
+    "software_development": "アプリ・スマートフォン開発",
+    "web_products":    "ホームページ制作・Webデザイン",
+    "ec":              "ECサイト・ネットショップ構築",
+    "writing_beginner":"ライティング・記事作成",
+    "business":        "ビジネス・マーケティング・企画",
+    "design":          "デザイン",
+    "task":            "事務・カンタン作業",
+    "translation_and_interpretation": "翻訳・通訳サービス",
+    "idea":            "ネーミング・アイデア",
+    "living":          "相談アドバイス・暮らし・社会",
+    "hardware_development": "製品設計・開発",
+    "parttime_system_operations": "プロジェクト・保守運用メンバー募集"
+  },
+
+  "blockedGroups": {
+    "_note": "BACKSTAGE業務委託契約 第8条（競業避止・違約金246万）。収集対象から外す",
+    "video_contents": "動画・映像・アニメーション",
+    "sounds":         "音楽・音響・ナレーション",
+    "multimedia":     "写真・画像",
+    "3dcg":           "3D-CG制作"
+  }
+}
