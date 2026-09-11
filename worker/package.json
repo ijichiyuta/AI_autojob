@@ -6,14 +6,14 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "crawl": "tsx src/cli/crawl.ts",
-    "score": "tsx src/cli/score.ts",
     "report": "tsx src/cli/report.ts",
     "rescore": "tsx src/cli/rescore.ts",
     "inspect": "tsx src/cli/inspect.ts",
     "login": "tsx src/cli/login.ts",
     "typecheck": "tsc --noEmit",
     "llm:export": "tsx src/cli/llm-export.ts",
-    "llm:import": "tsx src/cli/llm-import.ts"
+    "llm:import": "tsx src/cli/llm-import.ts",
+    "refetch": "tsx src/cli/refetch.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.102.1",

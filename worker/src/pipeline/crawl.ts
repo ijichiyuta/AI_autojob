@@ -9,6 +9,7 @@ import {
 } from '../scoring/score.js';
 import { randomDelay } from '../util/sleep.js';
 import { isQuietHour, type Guardrails, AbortRun } from '../browser/guard.js';
+import { ensureLoginChecked, isMembersOnly } from '../browser/session.js';
 
 interface BootstrapMode {
   enabled: boolean;
@@ -24,6 +25,9 @@ export interface CrawlResult {
   ngFiltered: number;
   detailFetched: number;
   scored: number;
+  /** 会員限定公開で詳細が読めなかった件数 */
+  membersOnly: number;
+  loggedIn: boolean;
 }
 
 export interface CrawlOptions {
@@ -63,15 +67,27 @@ export async function runCrawl(page: Page, opts: CrawlOptions = {}): Promise<Cra
   const { data: queries, error: qErr } = await qb;
   if (qErr) throw new Error(`検索条件の読み込みに失敗: ${qErr.message}`);
 
+  // ログイン状態を先に確認する。落ちていてもアラートを出すだけで公開案件の収集は続ける
+  const login = await ensureLoginChecked(page);
+  console.log(login.loggedIn
+    ? `  ログイン済み${login.userName ? `（${login.userName}）` : ''}。会員限定公開の案件も取得します`
+    : '  未ログイン。会員限定公開の案件は詳細が取得できません（npm run login）');
+
   const adapter = new CrowdWorksAdapter(page);
-  const result: CrawlResult = { queries: 0, found: 0, isNew: 0, ngFiltered: 0, detailFetched: 0, scored: 0 };
+  const result: CrawlResult = {
+    queries: 0, found: 0, isNew: 0, ngFiltered: 0, detailFetched: 0, scored: 0,
+    membersOnly: 0, loggedIn: login.loggedIn,
+  };
 
   for (const q of queries ?? []) {
     const groupSlug = (q.params as { group?: string }).group;
     if (!groupSlug) { console.warn(`  [${q.label}] params.group が未設定のためスキップ`); continue; }
 
     const { data: run } = await db.from('crawl_runs')
-      .insert({ platform: 'crowdworks', query_label: q.label }).select('id').single();
+      .insert({
+        platform: 'crowdworks', query_label: q.label,
+        meta: { logged_in: login.loggedIn, user_name: login.userName },
+      }).select('id').single();
     const runId = run?.id as string | undefined;
     let pagesCrawled = 0;
 
@@ -104,7 +120,7 @@ export async function runCrawl(page: Page, opts: CrawlOptions = {}): Promise<Cra
 
         if (pre.ngFlags.length > 0 || tooCheap) {
           const flags = [...pre.ngFlags, ...(tooCheap ? ['budget_below_min'] : [])];
-          if (!opts.dryRun) await saveJob(s, null, 'ng_filtered', flags, pre.warnFlags, pre.hits, null, weights, thresholds, genre);
+          if (!opts.dryRun) await saveJob(s, null, 'ng_filtered', flags, pre.warnFlags, pre.hits, null, weights, thresholds, genre, false);
           result.ngFiltered++;
           continue;
         }
@@ -117,6 +133,9 @@ export async function runCrawl(page: Page, opts: CrawlOptions = {}): Promise<Cra
         await randomDelay(guard.page_delay_ms);
         const detail = await adapter.fetchDetail(s.url);
         result.detailFetched++;
+
+        const membersOnly = isMembersOnly(detail.description);
+        if (membersOnly) result.membersOnly++;
 
         // --- 全文に対する本判定 ---
         const post = detectNg(rules, {
@@ -142,7 +161,7 @@ export async function runCrawl(page: Page, opts: CrawlOptions = {}): Promise<Cra
         if (ngFlags.length > 0) result.ngFiltered++; else result.scored++;
 
         if (!opts.dryRun) {
-          await saveJob(merged, detail, status, ngFlags, post.warnFlags, post.hits, detail, weights, thresholds, genre);
+          await saveJob(merged, detail, status, ngFlags, post.warnFlags, post.hits, detail, weights, thresholds, genre, membersOnly);
         }
       }
 
@@ -181,6 +200,7 @@ async function saveJob(
   weights: Weights,
   thresholds: Thresholds,
   genre: GenreProfile,
+  membersOnly: boolean,
 ) {
   const { data: job, error } = await db.from('jobs').upsert({
     platform: s.platform,
@@ -201,6 +221,7 @@ async function saveJob(
     client_verified: detail?.clientVerified ?? null,
     posted_at: s.postedAt ? `${s.postedAt}T00:00:00+09:00` : null,
     detail_fetched_at: detail ? new Date().toISOString() : null,
+    members_only: membersOnly,
     status,
   }, { onConflict: 'platform,external_id' }).select('id').single();
 

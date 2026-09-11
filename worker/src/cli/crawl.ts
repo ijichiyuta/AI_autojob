@@ -38,6 +38,9 @@ try {
   console.log(`  NG除外     : ${r.ngFiltered}件`);
   console.log(`  詳細取得   : ${r.detailFetched}件`);
   console.log(`  スコア付与 : ${r.scored}件`);
+  if (r.membersOnly > 0) {
+    console.log(`  会員限定    : ${r.membersOnly}件（${r.loggedIn ? '取得済み' : '未ログインのため詳細なし'}）`);
+  }
   console.log(`  所要       : ${mins}分`);
 } catch (e) {
   if (e instanceof AbortRun) console.error('中断:', e.message);

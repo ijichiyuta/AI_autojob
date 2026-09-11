@@ -22,6 +22,9 @@
 
 5. **CAPTCHA・ログイン失敗を検知したら停止する。** 自動突破は試みない。
 
+6. **ログインを自動化しない。** `npm run login` はブラウザを開くだけで、ID・パスワードは入力しない。
+   認証情報はコードにもDBにも置かず、専用Chromeプロファイルの中に閉じる。2段階認証も本人が画面で行う。
+
 ---
 
 ## 構成
@@ -44,6 +47,9 @@ npm run crawl -- --only システム開発 --pages 1     # 一部だけ
 npm run crawl -- --max-details 20               # 詳細取得を制限
 npm run crawl -- --headed                       # 目視確認
 npm run crawl -- --force                        # 深夜帯ガードを無視（手動時のみ）
+
+npm run login       # ブラウザを開いて本人がログインする（認証情報は入力しない）
+npm run refetch     # 会員限定公開の案件をログイン後に取り直す
 
 npm run report      # DBの状態を見る
 npm run rescore     # 再クロールせずルール・重みを再適用
@@ -75,6 +81,14 @@ supabase db push --password "$(cat .secrets/db-password.txt)"
 - **詳細取得は一次フィルタを通ったものだけに絞る。**
   システム開発だけで8,000件あるため全件の詳細を取るとリクエストが膨れる。
   一覧の情報（タイトル・抜粋・予算）でNG判定と予算足切りをしてから詳細に行く。
+
+- **ログイン状態の判定は `/dashboard` へのリダイレクトで行う。**
+  未ログインだと `/login` に飛ばされる。`/mypage` は404なので使えない。
+  判定と記録は `src/browser/session.ts`。状態は `settings.login_state` に入り、ダッシュボードの稼働状況に出る。
+
+- **会員限定公開の案件は未ログインだと本文が読めない。**
+  「会員限定公開オプションが選択されているため…」という本文が返る。`jobs.members_only` に印をつけ、
+  ログイン後に `npm run refetch` で取り直す。取り直すと本文が変わるので `llm_status` は `pending` に戻す。
 
 - **クラウドワークスのグループslug**（`/public/jobs/group/{slug}`）
   `development` `web_products` `ai_machine_learning` `ai_bpo` `software_development` `ec` `writing_beginner` `business` `design` `task` ほか。

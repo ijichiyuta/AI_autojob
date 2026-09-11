@@ -5,12 +5,17 @@ export const dynamic = 'force-dynamic';
 
 export default async function StatusPage() {
   const db = serverDb();
-  const [{ data: runs }, { data: alerts }, { data: ngRows }, { data: queries }] = await Promise.all([
+  const [{ data: runs }, { data: alerts }, { data: ngRows }, { data: queries }, { data: loginRow }, { count: membersOnly }] = await Promise.all([
     db.from('crawl_runs').select('*').order('started_at', { ascending: false }).limit(12),
     db.from('alerts').select('*').is('resolved_at', null).order('created_at', { ascending: false }).limit(10),
     db.from('job_scores').select('ng_flags').neq('ng_flags', '{}'),
     db.from('search_queries').select('*').order('label'),
+    db.from('settings').select('value').eq('key', 'login_state').maybeSingle(),
+    db.from('jobs').select('*', { count: 'exact', head: true }).eq('members_only', true),
   ]);
+
+  const login = loginRow?.value as
+    { logged_in?: boolean; user_name?: string | null; checked_at?: string } | undefined;
 
   const counts: Record<string, number> = {};
   for (const s of ['scored', 'ng_filtered', 'discovered', 'promoted']) {
@@ -27,6 +32,33 @@ export default async function StatusPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold tracking-tight">稼働状況</h1>
+
+      <section className={`rounded-xl border p-4 ${
+        login?.logged_in
+          ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/40'
+          : 'border-amber-300 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40'}`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className={`text-sm font-semibold ${
+              login?.logged_in ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-900 dark:text-amber-300'}`}>
+              クラウドワークス: {login?.logged_in ? 'ログイン済み' : '未ログイン'}
+              {login?.user_name ? `（${login.user_name}）` : ''}
+            </h2>
+            <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+              {login?.logged_in
+                ? '会員限定公開の案件も詳細を取得できます'
+                : '会員限定公開の案件は詳細が読めません。worker で npm run login を実行してください'}
+              {login?.checked_at && `　最終確認 ${relTime(login.checked_at)}`}
+            </p>
+          </div>
+          {(membersOnly ?? 0) > 0 && (
+            <span className="rounded-md bg-white/70 px-2.5 py-1 text-xs text-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-300">
+              会員限定で未取得 <strong>{membersOnly}</strong>件
+              {login?.logged_in && <span className="ml-1 text-neutral-500">→ npm run refetch</span>}
+            </span>
+          )}
+        </div>
+      </section>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="候補" value={counts.scored} tone="emerald" />

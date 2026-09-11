@@ -101,6 +101,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                         あと{left}日
                       </span>
                     )}
+                    {j.members_only && (
+                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                        会員限定（詳細未取得）
+                      </span>
+                    )}
                     <span className="text-neutral-400">{relTime(j.discovered_at)}</span>
                   </div>
 
