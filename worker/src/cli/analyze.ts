@@ -43,12 +43,11 @@ for (const [lo, hi] of buckets) {
 
 // ---- 実務条件での絞り込み ----
 console.log('\n=== 実務条件で絞ると（LLM判定済みのみ）===');
+// 応募数は絞り込み条件に使わない（本人判断 2026-09-12。応募多数の案件も応募対象に入れる）
 const gates: Array<[string, (j: typeof judged[number]) => boolean]> = [
   [`時給 ${minRate.toLocaleString()}円以上`, (j) => (j.hourly_rate ?? 0) >= minRate],
-  ['応募10人以下', (j) => (j.applicant_count ?? 999) <= 10],
   [`想定工数が週${th.weekly_capacity_hours}時間に収まる`, (j) => (j.estimated_hours ?? 999) <= th.weekly_capacity_hours],
   ['開発系（dev/web）', (j) => j.category === 'dev' || j.category === 'web'],
-  ['警告フラグなし', (j) => (j.warn_flags?.length ?? 0) === 0],
 ];
 let survivors = judged;
 for (const [label, f] of gates) {
@@ -58,11 +57,19 @@ for (const [label, f] of gates) {
 }
 
 console.log(`\n=== すべて満たす案件: ${survivors.length}件 ===`);
-for (const j of survivors.sort((a, b) => (b.total_score ?? 0) - (a.total_score ?? 0)).slice(0, 10)) {
-  console.log(`  [${j.total_score}点] 時給${(j.hourly_rate ?? 0).toLocaleString()}円 応募${j.applicant_count}人  ${j.title.slice(0, 44)}`);
+for (const j of survivors.sort((a, b) => (b.total_score ?? 0) - (a.total_score ?? 0)).slice(0, 15)) {
+  const w = (j.warn_flags?.length ?? 0) ? `  ⚠${(j.warn_flags as string[]).join(',')}` : '';
+  console.log(`  [${j.total_score}点] 時給${(j.hourly_rate ?? 0).toLocaleString()}円 工数${j.estimated_hours}h 応募${j.applicant_count}人  ${j.title.slice(0, 40)}${w}`);
   console.log(`         ${j.url}`);
 }
 if (!survivors.length) console.log('  （0件）');
+
+// 応募数は絞り込みに使わない代わりに、分布だけ見せる
+console.log('\n=== 通過した案件の応募数分布（参考。除外はしていない）===');
+for (const [lo, hi] of [[0,5],[6,10],[11,20],[21,50],[51,9999]] as const) {
+  const n = survivors.filter((j) => (j.applicant_count ?? 0) >= lo && (j.applicant_count ?? 0) <= hi).length;
+  console.log(`  応募 ${String(lo).padStart(3)}〜${hi === 9999 ? '   ' : String(hi).padStart(3)}人  ${'█'.repeat(Math.min(30, n))} ${n}件`);
+}
 
 // ---- NG理由 ----
 console.log('\n=== NG除外の内訳 ===');
