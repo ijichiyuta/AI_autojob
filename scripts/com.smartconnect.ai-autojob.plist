@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.smartconnect.ai-autojob</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/ijichiyuuta/.superset/projects/AI_autojob/scripts/run-worker.sh</string>
+  </array>
+
+  <!-- ログイン時に起動し、落ちたら10秒後に再起動する -->
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>10</integer>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/ijichiyuuta/.superset/projects/AI_autojob/worker</string>
+
+  <key>StandardOutPath</key>
+  <string>/Users/ijichiyuuta/.superset/projects/AI_autojob/logs/launchd.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/ijichiyuuta/.superset/projects/AI_autojob/logs/launchd.err.log</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>TZ</key><string>Asia/Tokyo</string>
+  </dict>
+</dict>
+</plist>

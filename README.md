@@ -103,11 +103,28 @@ cd dashboard && npm run dev   # http://localhost:3000
 
 ### 常駐
 
+手元で回すだけなら:
+
 ```bash
 cd worker
-caffeinate -i npm run dev        # 毎日 9/13/17/21時 に収集
+caffeinate -i npm run dev            # 毎日 9/13/17/21時 に収集
 caffeinate -i npm run dev -- --now   # 起動直後にも1回走らせる
 ```
+
+ターミナルを閉じても動かし続けるなら launchd に載せる:
+
+```bash
+cp scripts/com.smartconnect.ai-autojob.plist ~/Library/LaunchAgents/
+launchctl load  ~/Library/LaunchAgents/com.smartconnect.ai-autojob.plist   # 開始
+launchctl list | grep ai-autojob                                          # 状態
+launchctl unload ~/Library/LaunchAgents/com.smartconnect.ai-autojob.plist # 停止
+```
+
+ログインのたびに起動し、落ちても10秒後に再起動する。ログは `logs/worker.log` と
+`logs/launchd.{out,err}.log`。
+
+> **Chromeプロファイルは同時に1プロセスしか使えない。** launchd で常駐させている間は、
+> `npm run crawl` などを手で叩くと `ProcessSingleton` エラーになる。先に unload すること。
 
 ---
 
