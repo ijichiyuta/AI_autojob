@@ -51,6 +51,11 @@ npm run crawl -- --force                        # 深夜帯ガードを無視（
 npm run login       # ブラウザを開いて本人がログインする（認証情報は入力しない）
 npm run refetch     # 会員限定公開の案件をログイン後に取り直す
 
+# プロフィール（内容は src/profile/ 配下）
+npm run profile -- --apply    # 表示名・ひとことアピール・自己PR・職種
+npm run skills  -- --apply    # スキル登録
+npm run resumes -- --apply    # ポートフォリオ・経歴
+
 npm run report      # DBの状態を見る
 npm run rescore     # 再クロールせずルール・重みを再適用
 npm run inspect -- <URL>   # サイト構造の調査
@@ -93,6 +98,16 @@ supabase db push --password "$(cat .secrets/db-password.txt)"
 - **会員限定公開の案件は未ログインだと本文が読めない。**
   「会員限定公開オプションが選択されているため…」という本文が返る。`jobs.members_only` に印をつけ、
   ログイン後に `npm run refetch` で取り直す。取り直すと本文が変わるので `llm_status` は `pending` に戻す。
+
+- **プロフィール系フォームの落とし穴**
+  - 文字数はサイト側が**改行をCRLF(2文字)で数える**。素の文字数で判定すると通ったつもりで
+    フォームごと弾かれ、何も保存されない。`countAsSite()` で検査してから送る
+  - 上限: 表示名12 / ひとことアピール35 / 自己PR1024 / 経歴のタイトル35・概要128
+  - **スキル名はマスタから選ぶ方式**（jQuery UIのオートコンプリート）。自由入力は
+    「スキルを選択してください。」で弾かれる。マスタに無いもの: Next.js / Supabase / Stripe /
+    Flutter / Playwright / Tailwind / Vercel / SaaS → 近い名前で登録し、備考に実技術を書く
+  - **メイン職種カテゴリは1つだけ**。カテゴリをまたぐ職種は持てない
+  - 経歴の編集は `/resumes/{id}/edit`（一覧からの導線が無いのでIDを直接使う）
 
 - **クラウドワークスのグループslug**（`/public/jobs/group/{slug}`）
   `development` `web_products` `ai_machine_learning` `ai_bpo` `software_development` `ec` `writing_beginner` `business` `design` `task` ほか。

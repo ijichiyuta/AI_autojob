@@ -5,10 +5,12 @@
  */
 import { openContext, firstPage } from '../browser/context.js';
 import { checkLogin } from '../browser/session.js';
-import { SKILLS } from '../profile/skills.js';
+import { SKILLS, validateSkills } from '../profile/skills.js';
 import { sleep } from '../util/sleep.js';
 
 const apply = process.argv.includes('--apply');
+const lenErr = validateSkills();
+if (lenErr.length) { lenErr.forEach((e) => console.error(`  - ${e}`)); process.exit(1); }
 const ctx = await openContext({ headless: true });
 const page = await firstPage(ctx);
 
@@ -28,7 +30,21 @@ try {
 
       await page.goto('https://crowdworks.jp/user_skills', { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(1200);
-      await page.fill('input[name="user_skill[name]"]', s.name);
+      // スキル名はマスタから選ぶ方式。候補が出るまで打ち込んで、完全一致の候補をクリックする
+      const input = page.locator('input[name="user_skill[name]"]');
+      await input.click();
+      await input.type(s.name, { delay: 60 });
+      await page.waitForTimeout(1800);
+      const options = await page.evaluate(() =>
+        Array.from(document.querySelectorAll('ul.ui-autocomplete li'))
+          .map((e) => (e.textContent || '').trim()).filter(Boolean));
+      const exact = options.find((o) => o === s.name);
+      if (!exact) {
+        console.warn(`      ⚠ 候補に無いためスキップ（候補: ${options.slice(0, 4).join(' | ') || 'なし'}）`);
+        continue;
+      }
+      await page.locator('ul.ui-autocomplete li').filter({ hasText: new RegExp(`^${s.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) }).first().click();
+      await page.waitForTimeout(600);
       await page.selectOption('select[name="user_skill[level]"]', { label: s.level });
       await page.selectOption('select[name="user_skill[years]"]', { label: s.years });
       if (s.note) await page.fill('textarea[name="user_skill[note]"]', s.note);
