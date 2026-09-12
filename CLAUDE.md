@@ -70,6 +70,10 @@ supabase db push --password "$(cat .secrets/db-password.txt)"
   tsx(esbuild) が `__name` を注入し、ブラウザ側で `ReferenceError: __name is not defined` になる。
   インラインのコールバック（`.map(x => ...)`）と素の式は問題ない。
 
+- **待たせる処理は `caffeinate -i` で包む。**
+  `login` / `refetch` / `crawl` の npm script には入れてある。入れないと Mac がスリープして
+  待機がそのまま止まる（実際に login の60分待機がスリープで潰れた）。常駐ワーカーも `caffeinate -i npm run dev`。
+
 - **Chromeプロファイルは同時に1プロセスしか使えない。**
   収集バッチが動いている間、`inspect` 等の別コマンドは起動できない。だから普段使いのプロファイルは使わず、専用の `.chrome-profile/` を切ってある。
 
