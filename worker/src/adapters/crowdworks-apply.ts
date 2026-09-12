@@ -71,26 +71,27 @@ export class CrowdWorksApplyAdapter {
 
     // 納品予定日
     const [y, m, d] = input.deadline.split('-');
-    const base = 'proposal[conditions_attributes][0][milestones_attributes][0]';
-    await this.page.selectOption(`select[name="${base}[deadline(1i)]"]`, String(Number(y)));
-    await this.page.selectOption(`select[name="${base}[deadline(2i)]"]`, String(Number(m)));
-    await this.page.selectOption(`select[name="${base}[deadline(3i)]"]`, String(Number(d)));
+    const milestoneBase = 'proposal[conditions_attributes][0][milestones_attributes][0]';
+    await this.page.selectOption(`select[name="${milestoneBase}[deadline(1i)]"]`, String(Number(y)));
+    await this.page.selectOption(`select[name="${milestoneBase}[deadline(2i)]"]`, String(Number(m)));
+    await this.page.selectOption(`select[name="${milestoneBase}[deadline(3i)]"]`, String(Number(d)));
 
-    // 応募メッセージ
-    const body = this.page.locator(`textarea[name="${base}[message_attributes][body]"]`);
+    // 応募メッセージ（milestones_attributes は使わない）
+    const msgBase = 'proposal[conditions_attributes][0]';
+    const body = this.page.locator(`textarea[name="${msgBase}[message_attributes][body]"]`);
     await body.fill(input.message);
 
     await this.page.waitForTimeout(600);
     const shot = await saveScreenshot(this.page, `apply-before-${input.externalId}`);
 
-    const state = await this.page.evaluate((b) => ({
+    const state = await this.page.evaluate(() => ({
       amount: (document.querySelector('input[name="amount_dummy[]"]') as HTMLInputElement)?.value ?? '',
-      y: (document.querySelector(`select[name="${b}[deadline(1i)]"]`) as HTMLSelectElement)?.value ?? '',
-      m: (document.querySelector(`select[name="${b}[deadline(2i)]"]`) as HTMLSelectElement)?.value ?? '',
-      d: (document.querySelector(`select[name="${b}[deadline(3i)]"]`) as HTMLSelectElement)?.value ?? '',
-      msg: (document.querySelector(`textarea[name="${b}[message_attributes][body]"]`) as HTMLTextAreaElement)?.value ?? '',
+      y: (document.querySelector('select[name="proposal[conditions_attributes][0][milestones_attributes][0][deadline(1i)]"]') as HTMLSelectElement)?.value ?? '',
+      m: (document.querySelector('select[name="proposal[conditions_attributes][0][milestones_attributes][0][deadline(2i)]"]') as HTMLSelectElement)?.value ?? '',
+      d: (document.querySelector('select[name="proposal[conditions_attributes][0][milestones_attributes][0][deadline(3i)]"]') as HTMLSelectElement)?.value ?? '',
+      msg: (document.querySelector('textarea[name="proposal[conditions_attributes][0][message_attributes][body]"]') as HTMLTextAreaElement)?.value ?? '',
       pay: (document.querySelector('input[name="proposal[conditions_attributes][0][payment_type]"]:checked') as HTMLInputElement)?.value ?? '',
-    }), base);
+    }));
 
     return {
       url,
