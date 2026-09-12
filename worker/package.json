@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "llm:export": "tsx src/cli/llm-export.ts",
     "llm:import": "tsx src/cli/llm-import.ts",
-    "refetch": "caffeinate -i tsx src/cli/refetch.ts"
+    "refetch": "caffeinate -i tsx src/cli/refetch.ts",
+    "profile": "caffeinate -i tsx src/cli/profile-update.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.102.1",
