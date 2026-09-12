@@ -16,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className="text-sm font-semibold tracking-tight">案件応募エージェント</Link>
             <div className="flex gap-4 text-sm text-neutral-600 dark:text-neutral-400">
               <Link href="/" className="hover:text-neutral-900 dark:hover:text-neutral-100">案件一覧</Link>
+              <Link href="/queue" className="hover:text-neutral-900 dark:hover:text-neutral-100">承認キュー</Link>
               <Link href="/status" className="hover:text-neutral-900 dark:hover:text-neutral-100">稼働状況</Link>
             </div>
           </nav>
