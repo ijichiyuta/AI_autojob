@@ -38,7 +38,7 @@ for (const j of jobs ?? []) {
   const category = normalizeCategory(j.raw_category, j.title);
   const ng = detectNg(rules, {
     title: j.title, description: j.description,
-    rawCategory: j.raw_category, category,
+    rawCategory: j.raw_category, category, paymentType: j.payment_type,
   });
   const mid = budgetMidpoint(j.budget_min, j.budget_max);
   const budgetNg = mid != null && mid < minBudget;

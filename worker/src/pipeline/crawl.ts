@@ -113,7 +113,7 @@ export async function runCrawl(page: Page, opts: CrawlOptions = {}): Promise<Cra
         // --- 一次フィルタ: 詳細を取りに行く前に、一覧の情報だけで落とせるものは落とす ---
         const pre = detectNg(rules, {
           title: s.title, description: s.descriptionExcerpt,
-          rawCategory: s.rawCategory, category: s.category,
+          rawCategory: s.rawCategory, category: s.category, paymentType: s.paymentType,
         });
         const budgetMax = s.budgetMax ?? s.budgetMin;
         const tooCheap = budgetMax != null && budgetMax < minBudget;
@@ -141,6 +141,7 @@ export async function runCrawl(page: Page, opts: CrawlOptions = {}): Promise<Cra
         const post = detectNg(rules, {
           title: s.title, description: detail.description,
           rawCategory: s.rawCategory, category: s.category,
+          paymentType: detail.paymentType ?? s.paymentType,
         });
 
         const merged: JobSummary = {

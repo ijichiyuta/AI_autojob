@@ -66,7 +66,7 @@ try {
       const category = normalizeCategory(j.raw_category, j.title);
       const budgetMin = d.budgetMin ?? j.budget_min;
       const budgetMax = d.budgetMax ?? j.budget_max;
-      const ng = detectNg(rules, { title: j.title, description: d.description, rawCategory: j.raw_category, category });
+      const ng = detectNg(rules, { title: j.title, description: d.description, rawCategory: j.raw_category, category, paymentType: d.paymentType ?? j.payment_type });
       const mid = budgetMidpoint(budgetMin, budgetMax);
       const ngFlags = [...ng.ngFlags, ...(mid != null && mid < minBudget ? ['budget_below_min'] : [])];
       const status = ngFlags.length > 0 ? 'ng_filtered' : 'scored';

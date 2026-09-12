@@ -1,4 +1,4 @@
-import type { Category } from '../adapters/types.js';
+import type { Category, PaymentType } from '../adapters/types.js';
 
 export interface NgRule {
   id: string;
@@ -32,7 +32,13 @@ function compile(p: string): RegExp {
  */
 export function detectNg(
   rules: NgRule[],
-  input: { title: string; description: string | null; rawCategory: string | null; category: Category },
+  input: {
+    title: string;
+    description: string | null;
+    rawCategory: string | null;
+    category: Category;
+    paymentType?: PaymentType | null;
+  },
 ): NgResult {
   const text = [input.title, input.rawCategory ?? '', input.description ?? ''].join('\n');
   const ngFlags: string[] = [];
@@ -47,6 +53,17 @@ export function detectNg(
       label: '動画・切り抜き（BS競業避止 / 違約金246万）',
       pattern: 'category=video',
       excerpt: input.rawCategory ?? '',
+    });
+  }
+
+  // コンペ・タスクはサイト側の報酬形態で判定できる。正規表現より確実なのでこちらを使う
+  if (input.paymentType === 'competition') {
+    ngFlags.push('competition');
+    hits.push({
+      id: 'competition',
+      label: 'コンペ形式（落選すると報酬ゼロ）',
+      pattern: 'payment_type=competition',
+      excerpt: '報酬形態がコンペ',
     });
   }
 
