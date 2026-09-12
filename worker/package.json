@@ -17,7 +17,8 @@
     "profile": "caffeinate -i tsx src/cli/profile-update.ts",
     "skills": "caffeinate -i tsx src/cli/skills-register.ts",
     "resumes": "caffeinate -i tsx src/cli/resumes-register.ts",
-    "capture-demos": "tsx src/cli/capture-demos.ts"
+    "capture-demos": "tsx src/cli/capture-demos.ts",
+    "analyze": "tsx src/cli/analyze.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.102.1",

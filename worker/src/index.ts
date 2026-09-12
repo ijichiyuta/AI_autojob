@@ -12,7 +12,7 @@ import { env } from './env.js';
 import { openContext, firstPage } from './browser/context.js';
 import { runCrawl } from './pipeline/crawl.js';
 import { AbortRun } from './browser/guard.js';
-import { getSetting, raiseAlert } from './db/client.js';
+import { db, getSetting, raiseAlert } from './db/client.js';
 import type { Guardrails } from './browser/guard.js';
 
 mkdirSync(env.logDir, { recursive: true });
@@ -54,6 +54,19 @@ async function batch(trigger: string) {
     await ctx?.close().catch(() => {});
     running = false;
   }
+}
+
+// 前回プロセスが落ちたまま running で残っているレコードを閉じる
+{
+  const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
+  const { data: stale } = await db.from('crawl_runs')
+    .update({
+      status: 'aborted',
+      error_message: 'プロセスが停止したため中断（起動時に自動クローズ）',
+      finished_at: new Date().toISOString(),
+    })
+    .eq('status', 'running').lt('started_at', cutoff).select('id');
+  if (stale?.length) log(`起動時の掃除: 中断されたままの収集ログ ${stale.length}件を閉じました`);
 }
 
 const guard = await getSetting<Guardrails>('guardrails');
