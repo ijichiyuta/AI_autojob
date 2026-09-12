@@ -1,3 +1,8 @@
+/**
+ * ポートフォリオ用に、公開デモサイトのスクリーンショットを撮る。
+ *   npm run capture-demos
+ * 撮った画像は assets/portfolio/ に入り、経歴の添付に使う（/resumes/{id}/edit）。
+ */
 import { chromium } from 'playwright';
 const sites: Array<[string, string]> = [
   ['https://demo-cafe.smcn-jp.com', 'demo-cafe'],
