@@ -112,8 +112,9 @@ export function scoreJob(
   } else if (input.estimatedHours != null && input.estimatedHours > 0 && mid == null) {
     // 予算が未提示（見積もり提示型）。時給を計算できないからといって分母から外すと、
     // 予算を明示した低単価案件より高いスコアになってしまう。
-    // スコープも価格も未定であること自体がリスクなので、中立より低い値で採点する。
-    const pts = 0.3 * weights.hourly_rate;
+    // 一方で、開発案件では見積もり提示型はむしろ普通で、こちらが工数×希望時給で
+    // 出せる分だけ有利でもある。悪い兆候として扱いすぎないよう中立に置く。
+    const pts = 0.5 * weights.hourly_rate;
     earned += pts; covered += weights.hourly_rate;
     breakdown.hourly_rate = {
       value: null, points: Math.round(pts * 10) / 10, max: weights.hourly_rate,
